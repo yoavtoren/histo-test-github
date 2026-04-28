@@ -487,26 +487,49 @@ main {
 
 .lib-section dl { margin: 0; padding: 0.2rem 1rem 0.7rem; }
 .lib-term {
-  padding: 0.58rem 0;
+  padding: 0.52rem 0;
   border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  user-select: none;
 }
 .lib-term:last-child { border-bottom: none; }
 .lib-term dt {
   font-weight: 600;
   color: var(--ink);
-  margin-bottom: 0.13rem;
   font-family: var(--serif);
   font-size: 0.99rem;
   letter-spacing: -0.01em;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
+.lib-term dt::after {
+  content: "+";
+  font-size: 0.95rem;
+  font-weight: 300;
+  color: var(--muted);
+  flex-shrink: 0;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+.lib-term.open dt::after { content: "−"; }
 .lib-term dt .ll {
   font-style: italic;
   color: var(--ink-soft);
   font-weight: 400;
   font-size: 0.9rem;
   margin-left: 0.4rem;
+  flex: 1;
 }
-.lib-term dd { margin: 0; color: var(--ink-soft); font-size: 0.9rem; line-height: 1.57; }
+.lib-term dd {
+  display: none;
+  margin: 0.3rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.57;
+}
+.lib-term.open dd { display: block; }
 .lib-term dd .src {
   display: block; margin-top: 0.18rem; font-size: 0.73rem; color: var(--muted); font-family: var(--mono);
 }

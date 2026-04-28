@@ -166,8 +166,7 @@
     const hero = el("section", { class: "hero" }, [
       el("div", null, [
         el("h1", { text: "Histo Test" }),
-        el("p", { class: "lede" },
-          "B83006 histology and embryology — ten fixed mock papers, a searchable term library, and option-by-option explanations."),
+        el("p", { class: "lede" }, "Ten mock papers · a searchable term library · per-option explanations."),
         el("div", { class: "btn-row", style: { marginTop: "1.25rem" } }, [
           el("a", { class: "btn big", href: "#/mocks", text: "Start a mock" }),
           el("a", { class: "btn outline", href: "#/library", text: "Term library" }),
@@ -186,19 +185,19 @@
     grid.appendChild(el("a", { class: "card", href: "#/mocks" }, [
       el("span", { class: "ic", text: "M" }),
       el("h3", { text: "Mock tests" }),
-      el("p", { text: "Ten curated papers — 30 questions, 45 minutes, instant scored feedback." }),
+      el("p", { text: "Ten papers · 30 questions · 45 minutes · instant feedback." }),
       el("span", { class: "arrow", text: "Choose a mock →" }),
     ]));
     grid.appendChild(el("a", { class: "card", href: "#/library" }, [
       el("span", { class: "ic", text: "T" }),
       el("h3", { text: "Term library" }),
-      el("p", { text: "Every term from the lecture slides, with Latin nomenclature and source citations." }),
+      el("p", { text: "Every lecture term with Latin nomenclature and source." }),
       el("span", { class: "arrow", text: "Open library →" }),
     ]));
     grid.appendChild(el("a", { class: "card", href: "#/about" }, [
       el("span", { class: "ic", text: "i" }),
       el("h3", { text: "About" }),
-      el("p", { text: "Sources, question format, keyboard shortcuts, and hosting instructions." }),
+      el("p", { text: "Sources, keyboard shortcuts, and hosting instructions." }),
       el("span", { class: "arrow", text: "Read more →" }),
     ]));
     main.appendChild(grid);
@@ -210,7 +209,6 @@
       chip.textContent = s.label;
       chipStrip.appendChild(chip);
     });
-    main.appendChild(el("p", { class: "muted", style: { marginTop: "1.75rem", fontSize: "0.8rem", letterSpacing: "0.04em", textTransform: "uppercase" }, text: "Systems covered" }));
     main.appendChild(chipStrip);
   }
 

@@ -21,8 +21,6 @@
       el("small", { text: `${(window.HISTO_TERMS || []).length} terms · grouped by organ system` }),
     ]));
 
-    main.appendChild(el("p", { class: "muted", text: "All definitions and Latin / Greek nomenclature follow the wording of the lecture slides and cited textbooks. Use the search to jump straight to a term, or toggle organ-system filters." }));
-
     // Toolbar
     const tb = el("div", { class: "lib-toolbar" });
 
@@ -97,7 +95,8 @@
 
       const dl = el("dl");
       list.forEach(t => {
-        const wrap = el("div", { class: "lib-term" });
+        const hasQuery = q.length > 0;
+        const wrap = el("div", { class: "lib-term" + (hasQuery ? " open" : "") });
         const dt = el("dt");
         dt.innerHTML = highlight(t.term, q);
         if (t.lat) {
@@ -114,6 +113,7 @@
         }
         wrap.appendChild(dt);
         wrap.appendChild(dd);
+        wrap.addEventListener("click", () => wrap.classList.toggle("open"));
         dl.appendChild(wrap);
       });
       section.appendChild(dl);
