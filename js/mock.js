@@ -98,6 +98,39 @@
   ];
 
   // ----------------------------------------------------------------
+  // Mock metadata: emoji, difficulty (1–5)
+  const MOCK_EMOJI  = ["🔬","🍽️","❤️","🫁","🧬","🧠","🩺","⚗️","🎯","📋"];
+  const MOCK_DIFF   = [2, 3, 2, 2, 4, 4, 2, 3, 3, 4];
+  const DIFF_LABELS = ["", "Easy", "Moderate", "Challenging", "Hard", "Expert"];
+
+  // SVG donut pie chart for system mix distribution
+  function makePieSVG(mix, colors, size) {
+    const total = Object.values(mix).reduce((a, b) => a + b, 0);
+    const cx = size / 2, cy = size / 2;
+    const R = size * 0.42, r = size * 0.24;
+    let angle = -Math.PI / 2;
+    let paths = "";
+    const GAP = 0.025; // radians gap between segments
+
+    const entries = Object.entries(mix).filter(([, n]) => n > 0);
+    entries.forEach(([sysId, count]) => {
+      const slice = (count / total) * Math.PI * 2;
+      const a1 = angle + GAP / 2;
+      const a2 = angle + slice - GAP / 2;
+      const x1 = cx + R * Math.cos(a1), y1 = cy + R * Math.sin(a1);
+      const x2 = cx + R * Math.cos(a2), y2 = cy + R * Math.sin(a2);
+      const x3 = cx + r * Math.cos(a2), y3 = cy + r * Math.sin(a2);
+      const x4 = cx + r * Math.cos(a1), y4 = cy + r * Math.sin(a1);
+      const large = slice > Math.PI ? 1 : 0;
+      const color = colors[sysId] || "#ccc";
+      paths += `<path d="M${x1.toFixed(2)},${y1.toFixed(2)} A${R},${R} 0 ${large},1 ${x2.toFixed(2)},${y2.toFixed(2)} L${x3.toFixed(2)},${y3.toFixed(2)} A${r},${r} 0 ${large},0 ${x4.toFixed(2)},${y4.toFixed(2)} Z" fill="${color}" opacity="0.9"/>`;
+      angle += slice;
+    });
+
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">${paths}</svg>`;
+  }
+
+  // ----------------------------------------------------------------
   // Seeded PRNG (mulberry32) — deterministic per mock.
   function mulberry32(a) {
     return function () {
@@ -156,39 +189,41 @@
   }
 
   // ----------------------------------------------------------------
-  // Landing page — show the 10 cards
+  // Landing page — horizontal scroll carousel with pie charts
   function renderLanding() {
     const main = $("#app");
+    const SYS_COLORS = window.HT.SYS_COLORS || {};
 
     main.appendChild(el("div", { class: "section-title" }, [
-      el("h1", { text: "Mock tests" }),
-      el("small", { text: `${MOCK_TESTS.length} mocks · ${QUESTIONS_PER_MOCK} questions · ${TIMER_MINUTES} min each` }),
+      el("h1", { text: "Mock Tests" }),
+      el("small", { text: `${MOCK_TESTS.length} papers · ${QUESTIONS_PER_MOCK} Q · ${TIMER_MINUTES} min · pass ${PASS_PCT}%` }),
     ]));
 
-    const callout = el("div", { class: "callout" });
-    callout.innerHTML = `Each mock is deterministic — the same paper every time you open it, so you can benchmark your progress. Pass mark <strong>${PASS_PCT}%</strong> · high pass <strong>${HIGH_PCT}%+</strong>.`;
-    main.appendChild(callout);
-
-    // Existing in-progress test?
+    // In-progress banner
     const cur = LS.get(STORAGE_KEY, null);
     if (cur && !cur.submitted) {
       const remain = computeRemaining(cur);
       const banner = el("div", { class: "mock-config" });
-      const heading = cur.mockTitle ? `You have ${cur.mockTitle} in progress` : "You have a mock in progress";
-      banner.appendChild(el("h2", { text: heading }));
-      banner.appendChild(el("p", { text: `Started ${formatDate(cur.startedAt)} · ${formatRemaining(remain)} remaining.` }));
+      const shortTitle = cur.mockTitle ? cur.mockTitle.replace(/^Mock \d+ — /, "") : "a mock";
+      banner.appendChild(el("h2", { text: `▶ ${shortTitle} in progress` }));
+      banner.appendChild(el("p", { class: "muted", text: `${formatRemaining(remain)} left · started ${formatDate(cur.startedAt)}` }));
       const row = el("div", { class: "btn-row" });
-      row.appendChild(el("a", { class: "btn", href: "#/mock", text: "Resume" }));
+      row.appendChild(el("a", { class: "btn", href: "#/mock", text: "Resume →" }));
       row.appendChild(el("button", {
-        class: "btn outline",
-        text: "Discard and pick another",
-        onclick: () => { if (confirm("Discard the current mock?")) { LS.set(STORAGE_KEY, null); renderLanding.refresh(); } },
+        class: "btn outline", text: "Discard",
+        onclick: () => {
+          if (confirm("Discard the current mock?")) {
+            LS.set(STORAGE_KEY, null);
+            main.innerHTML = "";
+            renderLanding();
+          }
+        },
       }));
       banner.appendChild(row);
       main.appendChild(banner);
     }
 
-    // History — keyed by mockId so we can show "best %" per mock
+    // Best scores keyed by mockId
     const hist = LS.get(HISTORY_KEY, []);
     const bestByMock = {};
     hist.forEach(h => {
@@ -197,65 +232,105 @@
       if (!prev || h.pct > prev.pct) bestByMock[h.mockId] = h;
     });
 
-    // Card grid
-    const grid = el("div", { class: "mock-grid" });
-    MOCK_TESTS.forEach((m) => {
-      const card = el("article", { class: "mock-card" });
-      card.appendChild(el("h3", { text: m.title }));
-      card.appendChild(el("p", { text: m.blurb }));
+    // Horizontal scroll carousel
+    const scrollWrap = el("div", { class: "mock-scroll-wrap" });
+    const scroll = el("div", { class: "mock-scroll" });
 
-      // Mix breakdown chips
+    MOCK_TESTS.forEach((m, i) => {
+      const emoji     = MOCK_EMOJI[i]  || "🔬";
+      const diffLevel = MOCK_DIFF[i]   || 2;
+      const diffLabel = DIFF_LABELS[diffLevel] || "";
+      const best      = bestByMock[m.id];
+
+      const card = el("article", { class: "mock-card" });
+      card.style.animationDelay = `${i * 0.04}s`;
+
+      // Top row: emoji | mock number
+      const top = el("div", { class: "mock-card-top" });
+      top.appendChild(el("span", { class: "mock-card-emoji", text: emoji }));
+      top.appendChild(el("span", { class: "mock-num", text: `Mock ${String(i + 1).padStart(2, "0")}` }));
+      card.appendChild(top);
+
+      // Difficulty dots
+      const diff = el("div", { class: "mock-diff", dataset: { level: String(diffLevel) } });
+      for (let d = 1; d <= 5; d++) {
+        diff.appendChild(el("span", { class: "mock-diff-dot" + (d <= diffLevel ? " on" : "") }));
+      }
+      diff.appendChild(el("span", { class: "mock-diff-label", text: diffLabel }));
+      card.appendChild(diff);
+
+      // Title (drop the "Mock NN — " prefix)
+      const shortTitle = m.title.includes("—") ? m.title.split("—")[1].trim() : m.title;
+      card.appendChild(el("h3", { text: shortTitle }));
+
+      // SVG donut pie chart
+      const pieWrap = el("div", { class: "mock-pie" });
+      pieWrap.innerHTML = makePieSVG(m.mix, SYS_COLORS, 130);
+      pieWrap.appendChild(el("span", { class: "mock-pie-label", text: String(i + 1).padStart(2, "0") }));
+      card.appendChild(pieWrap);
+
+      // System mix chips
       const chips = el("div", { class: "mock-mix" });
-      Object.keys(m.mix).forEach(sysId => {
-        const n = m.mix[sysId];
+      Object.entries(m.mix).forEach(([sysId, n]) => {
         if (!n) return;
-        const chip = el("span", { class: "mix-chip" });
-        chip.textContent = `${systemLabel(sysId)} × ${n}`;
+        const chip = el("span", { class: "mix-chip", dataset: { sys: sysId } });
+        chip.appendChild(el("span", { class: "chip-dot" }));
+        chip.appendChild(document.createTextNode(systemLabel(sysId)));
+        chip.appendChild(el("b", { text: ` ×${n}` }));
         chips.appendChild(chip);
       });
       card.appendChild(chips);
 
-      // Best score
-      if (bestByMock[m.id]) {
-        const b = bestByMock[m.id];
-        card.appendChild(el("p", { class: "muted", text: `Best so far: ${b.score}/${b.outOf} (${b.pct}%) on ${formatDate(b.finishedAt)}` }));
+      // Best score line
+      const bestP = el("p", { class: "mock-best" + (best ? "" : " none") });
+      if (best) {
+        bestP.innerHTML = `Best: <b>${best.pct}%</b> · ${best.score}/${best.outOf} pts`;
+      } else {
+        bestP.textContent = "Not attempted yet";
       }
+      card.appendChild(bestP);
 
-      const row = el("div", { class: "btn-row" });
-      const btn = el("button", {
+      // Action button
+      const actions = el("div", { class: "mock-actions" });
+      actions.appendChild(el("button", {
         class: "btn",
-        text: bestByMock[m.id] ? "Re-attempt this mock" : "Start this mock",
+        text: best ? "Re-attempt →" : "Start →",
         onclick: () => beginMock(m.id),
-      });
-      row.appendChild(btn);
-      card.appendChild(row);
-      grid.appendChild(card);
-    });
-    main.appendChild(grid);
+      }));
+      card.appendChild(actions);
 
-    // Full history block
+      scroll.appendChild(card);
+    });
+
+    scrollWrap.appendChild(scroll);
+    main.appendChild(scrollWrap);
+
+    // History (compact)
     if (hist.length) {
       const histBox = el("div", { class: "mock-config" });
-      histBox.appendChild(el("h2", { text: "Your previous attempts" }));
+      histBox.appendChild(el("h2", { text: "Previous attempts" }));
       const ul = el("ul", { class: "history-list" });
-      hist.slice().reverse().forEach((h) => {
+      hist.slice().reverse().slice(0, 10).forEach(h => {
         const li = el("li");
-        const left = el("span");
-        const titleStr = h.mockTitle || (h.mockId || "Mock");
-        left.textContent = `${formatDate(h.finishedAt)} · ${titleStr} · ${h.score}/${h.outOf} pts (${h.pct}%) · ${h.questionCount} Qs`;
-        const right = el("span");
+        const titleStr = h.mockTitle ? h.mockTitle.replace(/^Mock \d+ — /, "") : (h.mockId || "Mock");
+        li.appendChild(el("span", { text: `${formatDate(h.finishedAt)} · ${titleStr}` }));
+        const right = el("span", { style: { display: "flex", alignItems: "center", gap: "0.4rem" } });
+        right.appendChild(el("span", { text: `${h.score}/${h.outOf} pts` }));
         right.appendChild(gradeChip(h.pct));
-        li.appendChild(left);
         li.appendChild(right);
         ul.appendChild(li);
       });
       histBox.appendChild(ul);
-      const clearBtn = el("button", {
-        class: "btn ghost",
-        text: "Clear history",
-        onclick: () => { if (confirm("Clear all mock history?")) { LS.set(HISTORY_KEY, []); renderLanding(); } }
-      });
-      histBox.appendChild(clearBtn);
+      histBox.appendChild(el("button", {
+        class: "btn ghost", text: "Clear history",
+        onclick: () => {
+          if (confirm("Clear all mock history?")) {
+            LS.set(HISTORY_KEY, []);
+            main.innerHTML = "";
+            renderLanding();
+          }
+        },
+      }));
       main.appendChild(histBox);
     }
 
@@ -491,7 +566,7 @@
 
     const meta = el("div", { class: "q-meta" });
     meta.appendChild(el("span", { class: "pill", text: `Q ${state.questions.indexOf(q) + 1}` }));
-    meta.appendChild(el("span", { class: "pill system", text: systemLabel(q.system) }));
+    meta.appendChild(el("span", { class: "pill system", text: systemLabel(q.system), dataset: { sys: q.system } }));
     if (q.subject) meta.appendChild(el("span", { class: "pill", text: q.subject }));
     meta.appendChild(el("span", { class: "pill", text: questionTypeLabel(q.type) + " · " + q.points + " pts" }));
     if (q.source) meta.appendChild(el("span", { class: "pill", text: "Source: " + q.source }));

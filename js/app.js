@@ -75,9 +75,23 @@
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
 
+  // System accent colours (must match CSS data-sys vars)
+  const SYS_COLORS = {
+    GIT:"#C85A25", CVS:"#B82D2D", Lymphatic:"#6B47B8",
+    Respiratory:"#2272B8", Urinary:"#A87D0A", MaleGenital:"#147A5E",
+    FemaleGenital:"#B03A7A", Endocrine:"#267832", Nervous:"#2A3E9E",
+    Integument:"#7A4E28",
+  };
+  // Short 2-3 letter abbrevs for sys-icon badges
+  const SYS_ABBR = {
+    GIT:"GI", CVS:"CV", Lymphatic:"LY", Respiratory:"RE",
+    Urinary:"UR", MaleGenital:"MG", FemaleGenital:"FG",
+    Endocrine:"EN", Nervous:"NS", Integument:"SK",
+  };
+
   // Expose helpers
   window.HT = {
-    $, $$, el, escapeHTML, shuffle, SYSTEMS, systemLabel, LS,
+    $, $$, el, escapeHTML, shuffle, SYSTEMS, systemLabel, LS, SYS_COLORS, SYS_ABBR,
   };
 
   // ---------- Router ----------
@@ -205,7 +219,7 @@
     // Systems chip strip
     const chipStrip = el("div", { class: "system-tags", style: { marginTop: "2rem" } });
     SYSTEMS.forEach(s => {
-      const chip = el("span", { class: "system-tag" });
+      const chip = el("span", { class: "system-tag", dataset: { sys: s.id } });
       chip.textContent = s.label;
       chipStrip.appendChild(chip);
     });
