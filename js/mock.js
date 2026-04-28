@@ -166,10 +166,7 @@
     ]));
 
     const callout = el("div", { class: "callout" });
-    callout.innerHTML = `
-      <strong>How it works:</strong> pick any of the 10 mocks below. Each is a 30-question, 45-minute paper drawn deterministically from the question bank — opening the same mock again gives you the same paper, so you can re-attempt it as a benchmark.
-      Multi-select (5 pts), single-best-answer (1 pt), fill-in-blank (10 pts) and short identifier (1 pt) styles all appear, exactly as on the printed exams.
-      Pass mark <strong>${PASS_PCT}%</strong>; aim for <strong>${HIGH_PCT}%+</strong>.`;
+    callout.innerHTML = `Each mock is deterministic — the same paper every time you open it, so you can benchmark your progress. Pass mark <strong>${PASS_PCT}%</strong> · high pass <strong>${HIGH_PCT}%+</strong>.`;
     main.appendChild(callout);
 
     // Existing in-progress test?

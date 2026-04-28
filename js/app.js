@@ -162,25 +162,21 @@
     const main = $("#app");
     const totalQ = (window.HISTO_QUESTIONS || []).length;
     const totalT = (window.HISTO_TERMS || []).length;
-    const sysCount = SYSTEMS.length;
 
     const hero = el("section", { class: "hero" }, [
       el("div", null, [
-        el("h1", { text: "Welcome to Histo Test" }),
+        el("h1", { text: "Histo Test" }),
         el("p", { class: "lede" },
-          "Practice histology and embryology the way it’s really tested. " +
-          "Browse the term library or pick one of ten 30-question, 45-minute mock papers — each mock is a different mix of organ systems, " +
-          "and every answer comes with an explanation that shows why it’s correct, why each distractor is wrong, and what wording change would flip it."),
-        el("div", { class: "btn-row", style: { marginTop: "1.1rem" } }, [
-          el("a", { class: "btn big", href: "#/mocks", text: "Choose a mock test" }),
-          el("a", { class: "btn outline", href: "#/library", text: "Open the term library" }),
+          "B83006 histology and embryology — ten fixed mock papers, a searchable term library, and option-by-option explanations."),
+        el("div", { class: "btn-row", style: { marginTop: "1.25rem" } }, [
+          el("a", { class: "btn big", href: "#/mocks", text: "Start a mock" }),
+          el("a", { class: "btn outline", href: "#/library", text: "Term library" }),
         ]),
         el("div", { class: "badges" }, [
           el("span", { class: "badge", text: `${totalQ} questions` }),
           el("span", { class: "badge", text: `${totalT} terms` }),
-          el("span", { class: "badge", text: `${sysCount} organ systems` }),
           el("span", { class: "badge", text: "10 mocks · 30 Q · 45 min" }),
-          el("span", { class: "badge", text: "Source-verbatim nomenclature" }),
+          el("span", { class: "badge", text: "10 organ systems" }),
         ]),
       ]),
     ]);
@@ -190,31 +186,31 @@
     grid.appendChild(el("a", { class: "card", href: "#/mocks" }, [
       el("span", { class: "ic", text: "M" }),
       el("h3", { text: "Mock tests" }),
-      el("p", { text: "Ten different mock papers to choose from — each 30 questions, 45-minute timer, instant feedback. Multi-select, single-MCQ, fill-in and short-answer styles — exactly as on the printed exams." }),
+      el("p", { text: "Ten curated papers — 30 questions, 45 minutes, instant scored feedback." }),
       el("span", { class: "arrow", text: "Choose a mock →" }),
     ]));
     grid.appendChild(el("a", { class: "card", href: "#/library" }, [
       el("span", { class: "ic", text: "T" }),
       el("h3", { text: "Term library" }),
-      el("p", { text: "Search and skim every term used in the lectures, with the same definitions, terminology and Latin nomenclature as in the source slides." }),
+      el("p", { text: "Every term from the lecture slides, with Latin nomenclature and source citations." }),
       el("span", { class: "arrow", text: "Open library →" }),
     ]));
     grid.appendChild(el("a", { class: "card", href: "#/about" }, [
-      el("span", { class: "ic", text: "?" }),
-      el("h3", { text: "About this site" }),
-      el("p", { text: "What sources were used, how questions and explanations are structured, and how to host the whole folder on GitHub Pages." }),
+      el("span", { class: "ic", text: "i" }),
+      el("h3", { text: "About" }),
+      el("p", { text: "Sources, question format, keyboard shortcuts, and hosting instructions." }),
       el("span", { class: "arrow", text: "Read more →" }),
     ]));
     main.appendChild(grid);
 
-    // Quick "systems covered" chip strip
-    const chipStrip = el("div", { class: "system-tags", style: { marginTop: "1.5rem" } });
+    // Systems chip strip
+    const chipStrip = el("div", { class: "system-tags", style: { marginTop: "2rem" } });
     SYSTEMS.forEach(s => {
       const chip = el("span", { class: "system-tag" });
       chip.textContent = s.label;
       chipStrip.appendChild(chip);
     });
-    main.appendChild(el("p", { class: "muted", style: { marginTop: "1.5rem" }, text: "Topics covered:" }));
+    main.appendChild(el("p", { class: "muted", style: { marginTop: "1.75rem", fontSize: "0.8rem", letterSpacing: "0.04em", textTransform: "uppercase" }, text: "Systems covered" }));
     main.appendChild(chipStrip);
   }
 
