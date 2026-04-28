@@ -1,0 +1,18 @@
+# --- Source / private resources (do NOT publish to GitHub Pages) ---
+# These are the lecture PDFs and exam screenshots that were used as
+# private input to build the question bank. They should not be
+# uploaded to a public repo.
+*.pdf
+*.jpeg
+*.jpg
+*.png
+FULL_TRANSCRIPTION.md
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+node_modules/
