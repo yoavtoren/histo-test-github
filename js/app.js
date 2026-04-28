@@ -118,15 +118,43 @@
     setNavActive(ctx.route);
     window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
     const main = $("#app");
-    main.innerHTML = "";
-    const fn = Routes[ctx.route] || Routes.home;
-    fn(ctx);
+
+    // Fade-out, swap content, fade-in
+    main.style.opacity = "0";
+    main.style.transform = "translateY(7px)";
+    main.style.transition = "none";
+
+    requestAnimationFrame(() => {
+      main.innerHTML = "";
+      const fn = Routes[ctx.route] || Routes.home;
+      fn(ctx);
+
+      requestAnimationFrame(() => {
+        main.style.transition = "opacity 0.24s ease, transform 0.24s ease";
+        main.style.opacity = "";
+        main.style.transform = "";
+        setTimeout(() => { main.style.transition = ""; }, 260);
+      });
+    });
+
+    if (window.HTSounds) window.HTSounds.play("navigate");
   }
 
   window.addEventListener("hashchange", navigate);
   window.addEventListener("DOMContentLoaded", () => {
     if (!location.hash) location.hash = "#/";
     navigate();
+
+    // Wire sound toggle button
+    const soundBtn = $("#sound-toggle");
+    if (soundBtn && window.HTSounds) {
+      soundBtn.addEventListener("click", () => {
+        const on = window.HTSounds.toggle();
+        soundBtn.textContent = on ? "🔊" : "🔇";
+        soundBtn.classList.toggle("muted", !on);
+        if (on) window.HTSounds.play("click");
+      });
+    }
   });
 
   // ---------- Home / Welcome page ----------

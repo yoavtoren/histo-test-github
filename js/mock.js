@@ -270,6 +270,7 @@
   function beginMock(mockId) {
     const mock = MOCK_TESTS.find(m => m.id === mockId);
     if (!mock) { alert("Unknown mock."); return; }
+    if (window.HTSounds) window.HTSounds.play("start");
     const questions = buildMockQuestions(mock);
     if (questions.length < QUESTIONS_PER_MOCK) {
       alert("Not enough questions in the bank to build this mock yet.");
@@ -410,6 +411,7 @@
     runState.currentIndex = i;
     LS.set(STORAGE_KEY, runState);
     refreshUI();
+    if (window.HTSounds) window.HTSounds.play("click");
   }
 
   function jumpTo(i) {
@@ -461,16 +463,19 @@
   function toggleSelect(qid, letter) {
     const q = runState.questions.find(x => x.id === qid);
     const a = runState.answers[qid] || { selected: [], blanks: [] };
+    let deselected = false;
     if (q.type === "multi") {
       const idx = a.selected.indexOf(letter);
-      if (idx >= 0) a.selected.splice(idx, 1);
+      if (idx >= 0) { a.selected.splice(idx, 1); deselected = true; }
       else a.selected.push(letter);
     } else {
-      a.selected = [letter];
+      deselected = a.selected.length > 0 && a.selected[0] === letter;
+      a.selected = deselected ? [] : [letter];
     }
     runState.answers[qid] = a;
     LS.set(STORAGE_KEY, runState);
     refreshUI();
+    if (window.HTSounds) window.HTSounds.play(deselected ? "deselect" : "select");
   }
 
   function setBlank(qid, idx, val) {
@@ -657,6 +662,7 @@
     if (!timeUp && unanswered > 0) {
       if (!confirm(`You have ${unanswered} unanswered question${unanswered > 1 ? "s" : ""}. Submit anyway?`)) return;
     }
+    if (window.HTSounds) window.HTSounds.play("submit");
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
     runState.submitted = true;
     runState.finishedAt = Date.now();
@@ -733,8 +739,10 @@
     const main = $("#app");
 
     const card = el("div", { class: "result-card" });
-    const ring = el("div", { class: "score-ring", style: { "--pct": cur.pct } });
-    ring.appendChild(el("span", { class: "ring-text", text: cur.pct + "%" }));
+    const ring = el("div", { class: "score-ring" });
+    ring.style.setProperty("--pct", "0");
+    const ringText = el("span", { class: "ring-text", text: "0%" });
+    ring.appendChild(ringText);
     card.appendChild(ring);
     card.appendChild(el("h2", { text: cur.timedOut ? "Time's up — auto-submitted" : (cur.mockTitle || "Mock") + " · submitted" }));
     card.appendChild(el("p", { html: `You scored <strong>${formatNum(cur.earned)} / ${cur.outOf}</strong> points across ${cur.questions.length} questions.` }));
@@ -744,6 +752,31 @@
     row.appendChild(el("button", { class: "btn outline", text: "Print / save as PDF", onclick: () => window.print() }));
     card.appendChild(row);
     main.appendChild(card);
+
+    // Animate score ring from 0 to actual percentage
+    (function animateRing() {
+      const target = cur.pct;
+      const duration = 900;
+      const startTime = performance.now();
+      const easeOutCubic = function (t) { return 1 - Math.pow(1 - t, 3); };
+      function step(now) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const value = Math.round(easeOutCubic(progress) * target);
+        ring.style.setProperty("--pct", value);
+        ringText.textContent = value + "%";
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    })();
+
+    // Play result sound after ring animation completes
+    if (window.HTSounds) {
+      setTimeout(function () {
+        if (cur.pct >= HIGH_PCT) window.HTSounds.play("celebrate");
+        else if (cur.pct >= PASS_PCT) window.HTSounds.play("correct");
+        else window.HTSounds.play("wrong");
+      }, 950);
+    }
 
     const summaryTitle = el("div", { class: "section-title" }, [
       el("h2", { text: "Question-by-question review" }),
