@@ -245,9 +245,8 @@
       const card = el("article", { class: "mock-card" });
       card.style.animationDelay = `${i * 0.04}s`;
 
-      // Top row: emoji | mock number
+      // Top row: mock number
       const top = el("div", { class: "mock-card-top" });
-      top.appendChild(el("span", { class: "mock-card-emoji", text: emoji }));
       top.appendChild(el("span", { class: "mock-num", text: `Mock ${String(i + 1).padStart(2, "0")}` }));
       card.appendChild(top);
 
@@ -259,26 +258,34 @@
       diff.appendChild(el("span", { class: "mock-diff-label", text: diffLabel }));
       card.appendChild(diff);
 
-      // Title (drop the "Mock NN — " prefix)
+      // Title + one-line focus
       const shortTitle = m.title.includes("—") ? m.title.split("—")[1].trim() : m.title;
       card.appendChild(el("h3", { text: shortTitle }));
+      card.appendChild(el("p", { class: "mock-focus", text: m.blurb }));
 
       // SVG donut pie chart
       const pieWrap = el("div", { class: "mock-pie" });
-      pieWrap.innerHTML = makePieSVG(m.mix, SYS_COLORS, 130);
+      pieWrap.innerHTML = makePieSVG(m.mix, SYS_COLORS, 110);
       pieWrap.appendChild(el("span", { class: "mock-pie-label", text: String(i + 1).padStart(2, "0") }));
       card.appendChild(pieWrap);
 
-      // System mix chips
+      // System mix chips — top 4 by question count only
       const chips = el("div", { class: "mock-mix" });
-      Object.entries(m.mix).forEach(([sysId, n]) => {
-        if (!n) return;
+      const sorted = Object.entries(m.mix)
+        .filter(([, n]) => n > 0)
+        .sort(([, a], [, b]) => b - a);
+      const shown = sorted.slice(0, 4);
+      const hidden = sorted.length - shown.length;
+      shown.forEach(([sysId, n]) => {
         const chip = el("span", { class: "mix-chip", dataset: { sys: sysId } });
         chip.appendChild(el("span", { class: "chip-dot" }));
         chip.appendChild(document.createTextNode(systemLabel(sysId)));
         chip.appendChild(el("b", { text: ` ×${n}` }));
         chips.appendChild(chip);
       });
+      if (hidden > 0) {
+        chips.appendChild(el("span", { class: "mix-chip", text: `+${hidden} more` }));
+      }
       card.appendChild(chips);
 
       // Best score line

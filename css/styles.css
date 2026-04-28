@@ -490,8 +490,8 @@ main {
   font-family: var(--sans);
 }
 .lib-filter input { accent-color: var(--accent); }
-.lib-filter.active { background: var(--accent); color: white; border-color: var(--accent); }
-.lib-filter[data-sys].active { background: var(--sys-color, var(--accent)); border-color: var(--sys-color, var(--accent)); }
+.lib-filter.active { background: var(--bg-tint); color: var(--ink); border-color: var(--line-strong); font-weight: 600; }
+.lib-filter[data-sys].active { background: var(--sys-bg, var(--bg-tint)); color: var(--sys-color, var(--ink)); border-color: var(--sys-color, var(--line-strong)); }
 .lib-toolbar .count { color: var(--muted); font-size: 0.8rem; padding-left: 0.2rem; margin-left: auto; }
 
 /* Library sections — collapsible with smooth height animation */
@@ -711,7 +711,7 @@ main {
 }
 
 .mock-card {
-  flex: 0 0 270px;
+  flex: 0 0 250px;
   display: flex; flex-direction: column;
   background: var(--bg-elev);
   border: 1px solid var(--line);
@@ -738,13 +738,8 @@ main {
 
 /* Card header row */
 .mock-card-top {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 0.55rem;
-}
-.mock-card-emoji {
-  font-size: 1.55rem;
-  line-height: 1;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+  display: flex; align-items: center; justify-content: flex-start;
+  margin-bottom: 0.5rem;
 }
 .mock-num {
   font-family: var(--mono); font-weight: 700; font-size: 0.7rem;
@@ -792,23 +787,24 @@ main {
   color: var(--ink); letter-spacing: -0.02em;
 }
 
-/* Mix chips — system-coloured */
+/* Mix chips — neutral with a single coloured dot */
 .mock-mix { display: flex; flex-wrap: wrap; gap: 0.22rem; margin: 0 0 0.65rem; }
 .mix-chip {
-  display: inline-flex; align-items: center; gap: 0.18rem;
-  font-size: 0.67rem; font-weight: 600;
-  padding: 0.16rem 0.52rem;
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  font-size: 0.68rem; font-weight: 500;
+  padding: 0.15rem 0.5rem 0.15rem 0.42rem;
   border-radius: 999px;
-  background: var(--sys-bg, var(--bg-tint));
-  border: 1px solid var(--sys-border, var(--line));
-  color: var(--sys-color, var(--ink-soft));
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
   white-space: nowrap;
 }
-.mix-chip b { color: inherit; opacity: 0.75; font-weight: 500; }
+.mix-chip b { color: var(--ink); font-weight: 600; }
 .mix-chip .chip-dot {
-  width: 5px; height: 5px; border-radius: 50%;
+  width: 6px; height: 6px; border-radius: 50%;
   background: var(--sys-color, var(--muted));
   flex-shrink: 0;
+  opacity: 0.85;
 }
 
 .mock-card .mock-best { font-size: 0.75rem; color: var(--ink-soft); margin: 0 0 0.55rem; }
